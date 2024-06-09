@@ -1,0 +1,56 @@
+---
+- name: Update and restart K8 Host Nodes
+  hosts: k8s_cluster
+  tasks:
+    - name: Update all APT packages
+      become: yes
+      apt:
+        name: '*'
+        state: latest
+      when: ansible_os_family == "Debian"
+
+    - name: Update OS
+      become: yes
+      apt:
+        upgrade: dist
+      when: ansible_os_family == "Debian"
+
+    - name: Append to local file
+      delegate_to: localhost
+      lineinfile:
+        path: "~/updates/updates.txt"
+        line: "Last update on {{ inventory_hostname }}: {{ ansible_date_time.date }} {{ ansible_date_time.time }}"
+
+- hosts: k8s_cluster
+  serial: 1
+  tasks:
+    - name: Drain the node
+      command: kubectl drain {{ inventory_hostname }} --ignore-daemonsets --delete-emptydir-data
+      delegate_to: k8-primary
+
+    - name: Reboot the node
+      shell: /sbin/reboot
+      async: 1
+      poll: 0
+      ignore_errors: true
+
+    - name: Wait for SSH to come back
+      wait_for_connection:
+        delay: 15
+        timeout: 300
+
+    - name: Uncordon the node
+      command: kubectl uncordon {{ inventory_hostname }}
+      delegate_to: k8-primary
+
+- hosts: k8-primary
+  tasks:
+    - name: Wait for k8-master to restart
+      wait_for:
+        port: 22
+        state: started
+        delay: 5
+        timeout: 300
+
+    - name: Run nohup cloudflared tunnel run
+      shell: nohup cloudflared tunnel run > cloudflared.log 2>&1 &
