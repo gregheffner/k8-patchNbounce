@@ -29,28 +29,21 @@
       delegate_to: k8-primary
 
     - name: Reboot the node
-      shell: /sbin/reboot
+      shell: systemctl reboot -i
       async: 1
       poll: 0
       ignore_errors: true
+      become: yes
 
     - name: Wait for SSH to come back
       wait_for_connection:
-        delay: 15
-        timeout: 300
+        delay: 30
+        timeout: 500
+
+    - name: Pause for 5 seconds
+      pause:
+        seconds: 5
 
     - name: Uncordon the node
       command: kubectl uncordon {{ inventory_hostname }}
       delegate_to: k8-primary
-
-- hosts: k8-primary
-  tasks:
-    - name: Wait for k8-master to restart
-      wait_for:
-        port: 22
-        state: started
-        delay: 5
-        timeout: 300
-
-    - name: Run nohup cloudflared tunnel run
-      shell: nohup cloudflared tunnel run > cloudflared.log 2>&1 &
