@@ -1,5 +1,5 @@
 ---
-- name: Update and restart K8 Host Nodes
+- name: Update and K8 Host Nodes
   hosts: k8s_cluster
   tasks:
     - name: Update all APT packages
@@ -9,7 +9,7 @@
         state: latest
       when: ansible_os_family == "Debian"
 
-    - name: Update OS
+    - name: Upgrade OS
       become: yes
       apt:
         upgrade: dist
@@ -21,7 +21,8 @@
         path: "~/updates/updates.txt"
         line: "Last update on {{ inventory_hostname }}: {{ ansible_date_time.date }} {{ ansible_date_time.time }}"
 
-- hosts: k8s_cluster
+- name: Bounce K8 Nodes
+  hosts: k8s_cluster
   serial: 1
   tasks:
     - name: Drain the node
