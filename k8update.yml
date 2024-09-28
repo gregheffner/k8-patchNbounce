@@ -41,9 +41,9 @@
         delay: 30
         timeout: 500
 
-    - name: Pause for 5 seconds
+    - name: Pause for 15 seconds
       pause:
-        seconds: 5
+        seconds: 15
 
     - name: Uncordon the node
       command: kubectl uncordon {{ inventory_hostname }}
