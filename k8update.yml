@@ -19,12 +19,6 @@
       become: yes
       shell: sudo truncate -s 0 /var/log/nginx/access.log /var/log/nginx/error.log
 
-    - name: Append to local file
-      delegate_to: localhost
-      lineinfile:
-        path: "/mnt/QNAP/backuplogs/updates/updates.txt"
-        line: "Last update on {{ inventory_hostname }}: {{ ansible_date_time.date }} {{ ansible_date_time.time }}"
-
 - name: Bounce K8 Nodes
   hosts: k8s_cluster
   serial: 1
