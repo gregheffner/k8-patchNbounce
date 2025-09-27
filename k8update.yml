@@ -1,4 +1,6 @@
 ---
+- import_playbook: /home/ansible/playbooks/tasks/pause_monitors.yml
+
 - name: Update and K8 Host Nodes
   hosts: k8s_cluster
   tasks:
@@ -46,3 +48,5 @@
     - name: Uncordon the node
       command: kubectl uncordon {{ inventory_hostname }}
       delegate_to: k8-primary
+
+- import_playbook: /home/ansible/playbooks/tasks/unpause_monitors.yml
