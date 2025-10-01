@@ -1,4 +1,6 @@
 ---
+- import_playbook: /home/ansible/playbooks/tasks/pause_monitors.yml
+
 - name: Update and K8 Host Nodes
   hosts: k8s_cluster
   tasks:
