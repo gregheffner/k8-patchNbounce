@@ -25,30 +25,4 @@
         path: "/mnt/QNAP/backuplogs/updates/updates.txt"
         line: "Last update on {{ inventory_hostname }}: {{ ansible_date_time.date }} {{ ansible_date_time.time }}"
 
-- name: Bounce K8 Nodes
-  hosts: k8s_cluster
-  serial: 1
-  tasks:
-    - name: Drain the node
-      command: kubectl drain {{ inventory_hostname }} --ignore-daemonsets --delete-emptydir-data
-      delegate_to: k8-primary
-
-    - name: Reboot the node
-      shell: systemctl reboot -i
-      async: 1
-      poll: 0
-      ignore_errors: true
-      become: yes
-
-    - name: Wait for SSH to come back
-      wait_for_connection:
-        delay: 30
-        timeout: 500
-
-    - name: Pause for 15 seconds
-      pause:
-        seconds: 15
-
-    - name: Uncordon the node
-      command: kubectl uncordon {{ inventory_hostname }}
-      delegate_to: k8-primary
+- import_playbook: /home/ansible/playbooks/tasks/k8reboot.yml
