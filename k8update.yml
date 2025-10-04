@@ -1,5 +1,4 @@
 ---
-- import_playbook: /home/ansible/playbooks/tasks/pause_monitors.yml
 
 - name: Update and K8 Host Nodes
   hosts: k8s_cluster
@@ -21,32 +20,5 @@
       become: yes
       shell: sudo truncate -s 0 /var/log/nginx/access.log /var/log/nginx/error.log
 
-- name: Bounce K8 Nodes
-  hosts: k8s_cluster
-  serial: 1
-  tasks:
-    - name: Drain the node
-      command: kubectl drain {{ inventory_hostname }} --ignore-daemonsets --delete-emptydir-data
-      delegate_to: k8-primary
+- import_playbook: /home/ansible/playbooks/tasks/k8reboot.yml
 
-    - name: Reboot the node
-      shell: systemctl reboot -i
-      async: 1
-      poll: 0
-      ignore_errors: true
-      become: yes
-
-    - name: Wait for SSH to come back
-      wait_for_connection:
-        delay: 30
-        timeout: 500
-
-    - name: Pause for 15 seconds
-      pause:
-        seconds: 15
-
-    - name: Uncordon the node
-      command: kubectl uncordon {{ inventory_hostname }}
-      delegate_to: k8-primary
-
-- import_playbook: /home/ansible/playbooks/tasks/unpause_monitors.yml
