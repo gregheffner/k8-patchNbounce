@@ -21,4 +21,3 @@
       shell: sudo truncate -s 0 /var/log/nginx/access.log /var/log/nginx/error.log
 
 - import_playbook: /home/ansible/playbooks/tasks/k8reboot.yml
-
